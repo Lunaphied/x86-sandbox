@@ -1,9 +1,10 @@
 from unicorn import *
 from unicorn.x86_const import *
 
-X86_CODE32 = open('move32.bin' ,'rb').read()
+X86_CODE = open('move32.code.bin' ,'rb').read()
+X86_DATA = open('move32.data.bin' ,'rb').read()
 
-ADDRESS = 0x0
+ADDRESS = 0x1000
 
 def hook_code(uc, address, size, user_data):
     print(">>> Tracing instruction at 0x%x, size = 0x%x" % (address, size))
@@ -22,13 +23,15 @@ def hook_interrupt(uc, except_idx, user_data):
 
 try:
     mu = Uc(UC_ARCH_X86, UC_MODE_16)
-    mu.mem_map(0x0, 2 * 1024 * 2014)
-    mu.mem_write(0x0, X86_CODE32)
+    #mu.mem_map(0x0, 2*1024)
+    mu.mem_map(0x0, 2 * 1024 * 1024)
+    mu.mem_write(0x0, X86_DATA)
+    mu.mem_write(0x1000, X86_CODE)
     mu.hook_add(UC_HOOK_INSN, hook_out, None, 1, 0, UC_X86_INS_OUT)
     mu.hook_add(UC_HOOK_MEM_READ_UNMAPPED | UC_HOOK_MEM_WRITE_UNMAPPED, hook_mem_invalid)
     mu.hook_add(UC_HOOK_CODE, hook_code)
     mu.hook_add(UC_HOOK_INTR, hook_interrupt)
-    mu.emu_start(ADDRESS, ADDRESS+len(X86_CODE32))
+    mu.emu_start(ADDRESS, ADDRESS+len(X86_CODE))
     print("Emulation done. Printing CPU context")
     r_eax = mu.reg_read(UC_X86_REG_EAX)
     r_ebx = mu.reg_read(UC_X86_REG_EBX)

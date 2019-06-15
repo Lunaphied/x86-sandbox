@@ -1,6 +1,4 @@
-.code16
-jmp main
-
+.data
 gdt:
 _gdt_null:
 	.quad 0x0
@@ -22,6 +20,8 @@ gdt_end:
 _data:
 	.word gdt_end-gdt
 	.long gdt
+.text
+.code16
 main:
 	cli
 	lgdt _data
@@ -30,7 +30,6 @@ main:
 	or $0x1, %eax
 	mov %eax, %cr0
 	ljmp $0x8, $main_p16
-.code16
 main_p16:
 	mov $0x10, %ax
 	mov %ax, %ds
